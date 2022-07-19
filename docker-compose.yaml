@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  catalog:
+    build: ./catalog
+    ports:
+      - "4000:8000"
+    networks:
+      - innerNetwork
+    volumes:
+      - "./catalog:/app"
+  order:
+    build: ./order
+    ports:
+      - "4001:8000"
+    networks:
+      - innerNetwork
+    volumes:
+      - "./order:/app"
+networks:
+  innerNetwork:
