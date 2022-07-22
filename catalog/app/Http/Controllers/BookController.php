@@ -78,7 +78,7 @@ class BookController extends Controller
         $book->cost=$request->post('cost');
         $book->save();
         Log::info('(Catalog server) the book has been updated, the new cost is '.  $request->post('cost'), ['id' =>  $book->id]);
-        Log::channel('stderr')->info('(Front-end server) the book has been updated, the new cost is '.  $request->post('cost'), ['id' => $book->id]);
+        Log::channel('stderr')->info('(Catalog server) the book has been updated, the new cost is '.  $request->post('cost'), ['id' => $book->id]);
         return response()->json(['cost'=>$request->post('cost')]);
 
     }
