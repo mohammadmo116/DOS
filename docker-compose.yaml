@@ -9,6 +9,7 @@ services:
       - innerNetwork
     volumes:
       - "./catalog:/app"
+      - "./logs/laravel.log:/app/storage/logs/laravel.log"
   order:
     build: ./order
     ports:
@@ -17,5 +18,15 @@ services:
       - innerNetwork
     volumes:
       - "./order:/app"
+      - "./logs/laravel.log:/app/storage/logs/laravel.log"
+  front:
+    build: ./front
+    ports:
+      - "4002:8000"
+    networks:
+      - innerNetwork
+    volumes:
+      - "./front:/app"
+      - "./logs/laravel.log:/app/storage/logs/laravel.log"
 networks:
   innerNetwork:

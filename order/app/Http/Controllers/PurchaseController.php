@@ -1,12 +1,15 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Support\Facades\Http;
+use Carbon\Carbon;
 
 
 use App\Models\Purchase;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
+use Illuminate\Support\Facades\Http;
+use function PHPUnit\Framework\returnSelf;
 
 class PurchaseController extends Controller
 {
@@ -29,18 +32,32 @@ class PurchaseController extends Controller
      */
     public function store(Request $request)
     {
-        $book= Http::get('catalog:8000/api/book/'.$request->get('id'));
 
+        $book= Http::get('catalog:8000/api/book/'.$request->post('id'));
 
+        if($book->status()==404)
+     {
+        Log::error('(Order server) book is not found".', ['id' => $request->post('id')]);
+        Log::channel('stderr')->error('(Order server) book is not found".', ['id' => $request->post('id')]);
+        return "book is not found";
+    }
+        else
+       {Log::info('(Order server) book found.', ['id' => $book['id']]);
+        Log::channel('stderr')->info('(Order server) book found.', ['id' => $book['id']]);
+    }
         if($book['count']<=0)
-        return "this book is out of stock!";
-
+       {  Log::info('(Order server) book out of stock!.', ['id' => $book['id']]);
+        Log::channel('stderr')->info('(Order server) book out of stock!.', ['id' => $book['id']]);
+       return "this book is out of stock!";
+       }
         else{
-        $book= Http::put('catalog:8000/api/removeBook/'.$request->get('id'));
+        $book= Http::put('catalog:8000/api/removeBook/'.$request->post('id'));
  $order =Purchase::create([
         'purchase_date'=>date('Y-m-d H:i:s'),
-        'book_id'=>$request->get('id'),
+        'book_id'=>$request->post('id'),
     ]);
+    Log::info('(Order server) Purchase successfully order #.', ['id' => $order->id]);
+    Log::channel('stderr')->info('(Order server) Purchase successfully order #.', ['id' => $order->id]);
     return 'Purchase successfully order #'.$order->id;
 }
     }
