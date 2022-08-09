@@ -27,19 +27,25 @@ class OrderController extends Controller
      */
     public function store($id)
     {
+
+        if(Cache::has($id))
+        {if(Cache::get($id)['count']<=0)
+        return "this book is out of stock!";
+        }
         if(Cache::get('flag'))
         {
-            $response= Http::post('order:8000/api/buyBook',['id'=>$id]);
+
+            $response= Http::post('order:8000/api/buyBook',['id'=>$id,'exist'=>Cache::has($id)?Cache::get($id):false]);
 
 
          Cache::set('flag',0); }
         else
-        {     $response= Http::post('orderr:8000/api/buyBook',['id'=>$id]);
+        {     $response= Http::post('orderr:8000/api/buyBook',['id'=>$id,'exist'=>Cache::has($id)?Cache::get($id):false]);
 
             Cache::set('flag',1);  }
 
 
-         if($response->body()=="this book is out of stock!"||$response->body()=="this book is out of stock!"){
+         if($response->json('p')=="this book is out of stock!"||$response->json('p')=="book is not found"){
             Log::info('(Front-end server) Purchase not successfully book',['id'=>$id]);
             Log::channel('stderr')->info('(Front-end server) Purchase not successfully book',['id'=>$id]);
          }
@@ -48,7 +54,11 @@ class OrderController extends Controller
                    Log::info('(Front-end server) Purchase successfully book',['id'=>$id]);
             Log::channel('stderr')->info('(Front-end server) Purchase successfully book',['id'=>$id]);}
 
-         return $response->body();
+            if($response->json('invalidate'))
+           { if(Cache::has($id))
+            Cache::forget($id);}
+
+         return $response->json('p');
     }
 
     /**
@@ -84,4 +94,5 @@ class OrderController extends Controller
     {
         //
     }
+
 }

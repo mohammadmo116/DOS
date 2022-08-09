@@ -36,6 +36,7 @@ services:
       - innerNetwork
     volumes:
       - "./catalogR:/app"
+      - "./logs/laravel.log:/app/storage/logs/laravel.log"
   orderr:
     build: ./orderR
     ports:
@@ -43,6 +44,7 @@ services:
     networks:
       - innerNetwork
     volumes:
-      - "./orderR:/app"      
+      - "./orderR:/app"  
+      - "./logs/laravel.log:/app/storage/logs/laravel.log"    
 networks:
   innerNetwork:

@@ -24,31 +24,19 @@ class CatalogController extends Controller
       if(Cache::get('flag'))
         {
             $response= Http::get('catalog:8000/api/getBooks');
-         Cache::set('flag',0); }
+         Cache::add('flag',0); }
         else
         { $response= Http::get('catalogr:8000/api/getBooks');
-            Cache::set('flag',1);  }
+            Cache::add('flag',1);  }
 
+       foreach ($response->json() as $key => $value) {
+        Cache::add($response->json($key)['id'],$value);
+       }
         Log::info("(Front-end Server) -> getting all books -> " . $response->body());
         Log::channel('stderr')->info("(Front-end Server) -> getting all books -> " . $response->body()."\n");
+
         return $response->json();
 
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-
-    //    Cache::set('flag',1);
-    //    return Cache::get('flag');
-
-        // $response= Http::get('catalog:8000/api/getBooks');
-        // return $response->json();
     }
 
     /**
@@ -58,13 +46,21 @@ class CatalogController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id)
-    {    if(Cache::get('flag'))
+    {
+
+        if(Cache::has($id)){
+            Log::info('(Front-end server (Cache) ) book was found', ['id' => $id]);
+            Log::channel('stderr')->info('(Front-end server (Cache) ) book was found', ['id' => $id]);
+        return Cache::get($id);
+    }
+        else{
+        if(Cache::get('flag'))
         {
             $response= Http::get('catalog:8000/api/book/'.$id);
-         Cache::set('flag',0); }
+         Cache::add('flag',0); }
         else
         {   $response= Http::get('catalogr:8000/api/book/'.$id);
-            Cache::set('flag',1);  }
+            Cache::add('flag',1);  }
 
 
         if($response->status()==404)
@@ -72,9 +68,15 @@ class CatalogController extends Controller
         Log::channel('stderr')->error('(Front-end server) book was not found book', ['id' => $id]);
         return "book is not found";}
         else
-        {  Log::info('(Front-end server) book was found', ['id' => $id]);
+
+        {
+
+            Cache::add($response->json()['id'],$response->json());
+             Log::info('(Front-end server) book was found', ['id' => $id]);
             Log::channel('stderr')->info('(Front-end server) book was found', ['id' => $id]);
             return $response->json();}
+        }
+
 
     }
 
@@ -105,6 +107,11 @@ class CatalogController extends Controller
             return "book is not found";}
         else
         {
+            if($response->json('invalidate'))
+            {
+                if(Cache::has($id))
+                Cache::forget($id);
+            }
              Log::info('(Front-end server) the book has been updated, the new cost is '.  $response->json('cost'), ['id' => $id]);
              Log::channel('stderr')->info('(Front-end server) the book has been updated, the new cost is '.  $response->json('cost'), ['id' => $id]);
         return "the book has been updated, the new cost is ".  $response->json('cost');
@@ -130,7 +137,12 @@ class CatalogController extends Controller
           Log::channel('stderr')->error('(front-end Server) -> no books found (search='.$topic.")\n");
         return $response->json('error');}
         else
-        { log::info('(front-end Server) -> books found (search='.$topic .') books-> '.$response->body());
+        {
+            foreach ($response->json() as $key => $value) {
+                Cache::set($response->json($key)['id'],$value);
+               }
+
+         log::info('(front-end Server) -> books found (search='.$topic .') books-> '.$response->body());
         Log::channel('stderr')->info('(front-end Server) -> books found (search='.$topic .') books-> '.$response->body()."\n");
         return $response->json();}
     }
@@ -155,19 +167,18 @@ class CatalogController extends Controller
         }
         else
         {
+            if($response->json('invalidate'))
+            {
+                if(Cache::has($id))
+                Cache::forget($id);
+            }
             log::info('(front-end Server) -> the book has been added',['id'=>$id]);
             Log::channel('stderr')->info('(front-end Server) ->  the book has been added',['id'=>$id]);
         return "the book has been added";
     }
     }
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
-    }
+
+
+
+
 }

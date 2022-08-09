@@ -28,53 +28,60 @@ class PurchaseController extends Controller
      */
     public function store(Request $request)
     {
-        if(Cache::get('flag'))
-        {
-          $book= Http::get('catalog:8000/api/book/'.$request->post('id'));
 
-         Cache::set('flag',0); }
+        if($request->post('exist')){
+            $book=$request->post('exist');
+         }
         else
-        {  $book= Http::get('catalogr:8000/api/book/'.$request->post('id'));
+        { if(Cache::get('flag'))
+         {
+           $book= Http::get('catalog:8000/api/book/'.$request->post('id'));
 
-            Cache::set('flag',1);  }
+          Cache::set('flag',0); }
+         else
+         {  $book= Http::get('catalogr:8000/api/book/'.$request->post('id'));
 
-        if($book->status()==404)
-     {
-        Log::error('(OrderR server) book is not found".', ['id' => $request->post('id')]);
-        Log::channel('stderr')->error('(OrderR server) book is not found".', ['id' => $request->post('id')]);
-        return "book is not found";
-    }
-        else
-       {Log::info('(OrderR server) book found.', ['id' => $book['id']]);
-        Log::channel('stderr')->info('(OrderR server) book found.', ['id' => $book['id']]);
-    }
-        if($book['count']<=0)
-       {  Log::info('(OrderR server) book out of stock!.', ['id' => $book['id']]);
-        Log::channel('stderr')->info('(OrderR server) book out of stock!.', ['id' => $book['id']]);
-       return "this book is out of stock!";
-       }
-        else{
-            if(Cache::get('flag'))
-            {
-                $book= Http::put('catalog:8000/api/removeBook/'.$request->post('id'));
+             Cache::set('flag',1);  }
 
-             Cache::set('flag',0); }
-            else
-            {    $book= Http::put('catalogr:8000/api/removeBook/'.$request->post('id'));
+         if($book->status()==404)
+      {
+         Log::error('(OrderR server) book is not found".', ['id' => $request->post('id')]);
+         Log::channel('stderr')->error('(OrderR server) book is not found".', ['id' => $request->post('id')]);
+         return response()->json(['p'=>"book is not found"]);
+     }
+         else
+        {Log::info('(OrderR server) book found.', ['id' => $book['id']]);
+         Log::channel('stderr')->info('(OrderR server) book found.', ['id' => $book['id']]);
+     }
+     if($book['count']<=0)
+     {  Log::info('(OrderR server) book out of stock!.', ['id' => $book['id']]);
+      Log::channel('stderr')->info('(OrderR server) book out of stock!.', ['id' => $book['id']]);
+      return response()->json(['p'=>"this book is out of stock!"]);
+
+     }
+ }
+
+             if(Cache::get('flag'))
+             {
+                 $book= Http::put('catalog:8000/api/removeBook/'.$request->post('id'));
+
+              Cache::set('flag',0); }
+             else
+             {    $book= Http::put('catalogr:8000/api/removeBook/'.$request->post('id'));
 
 
-                Cache::set('flag',1);  }
-                $date=date('Y-m-d H:i:s');
- $order =Purchase::create([
-        'purchase_date'=>$date,
-        'book_id'=>$request->post('id'),
+                 Cache::set('flag',1);  }
+                 $date=date('Y-m-d H:i:s');
+  $order =Purchase::create([
+         'purchase_date'=> $date,
+         'book_id'=>$request->post('id'),
 
-    ]);
-    Http::post('order:8000/api/addP/'.$request->post('id'),['date'=>$date]);
-    Log::info('(OrderR server) Purchase successfully order #.', ['id' => $order->id]);
-    Log::channel('stderr')->info('(OrderR server) Purchase successfully order #.', ['id' => $order->id]);
-    return 'Purchase successfully order #'.$order->id;
-}
+
+     ]);
+     Http::post('order:8000/api/addP/'.$request->post('id'),['date'=>$date]);
+     Log::info('(OrderR server) Purchase successfully order #.', ['id' => $order->id]);
+     Log::channel('stderr')->info('(OrdeRr server) Purchase successfully order #.', ['id' => $order->id]);
+         return response()->json(['p'=>'Purchase successfully order #'.$order->id,'invalidate'=>true]);
     }
 
     /**

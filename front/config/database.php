@@ -123,8 +123,15 @@ return [
 
         'client' => env('REDIS_CLIENT', 'phpredis'),
 
+        'default' => [
+            'url' => 'tcp://127.0.0.1:6379?database=0',
+        ],
+
+        'cache' => [
+            'url' => 'tls://user:password@127.0.0.1:6380?database=1',
+        ],
         'options' => [
-            'cluster' => env('REDIS_CLUSTER', 'redis'),
+            'cluster' => env('REDIS_CLUSTER', 'phpredis'),
             'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
         ],
 

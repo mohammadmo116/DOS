@@ -33,8 +33,11 @@ class PurchaseController extends Controller
      */
     public function store(Request $request)
     {
-
-        if(Cache::get('flag'))
+        if($request->post('exist')){
+           $book=$request->post('exist');
+        }
+       else
+       { if(Cache::get('flag'))
         {
           $book= Http::get('catalog:8000/api/book/'.$request->post('id'));
 
@@ -48,18 +51,19 @@ class PurchaseController extends Controller
      {
         Log::error('(Order server) book is not found".', ['id' => $request->post('id')]);
         Log::channel('stderr')->error('(Order server) book is not found".', ['id' => $request->post('id')]);
-        return "book is not found";
+        return response()->json(['p'=>"book is not found"]);
     }
         else
        {Log::info('(Order server) book found.', ['id' => $book['id']]);
         Log::channel('stderr')->info('(Order server) book found.', ['id' => $book['id']]);
     }
-        if($book['count']<=0)
-       {  Log::info('(Order server) book out of stock!.', ['id' => $book['id']]);
-        Log::channel('stderr')->info('(Order server) book out of stock!.', ['id' => $book['id']]);
-       return "this book is out of stock!";
-       }
-        else{
+    if($book['count']<=0)
+    {  Log::info('(Order server) book out of stock!.', ['id' => $book['id']]);
+     Log::channel('stderr')->info('(Order server) book out of stock!.', ['id' => $book['id']]);
+     return response()->json(['p'=>"this book is out of stock!"]);
+
+    }
+}
 
             if(Cache::get('flag'))
             {
@@ -81,8 +85,10 @@ class PurchaseController extends Controller
     Http::post('orderr:8000/api/addP/'.$request->post('id'),['date'=>$date]);
     Log::info('(Order server) Purchase successfully order #.', ['id' => $order->id]);
     Log::channel('stderr')->info('(Order server) Purchase successfully order #.', ['id' => $order->id]);
-    return 'Purchase successfully order #'.$order->id;
-}
+        return response()->json(['p'=>'Purchase successfully order #'.$order->id,'invalidate'=>true]);
+
+
+
     }
 
     /**

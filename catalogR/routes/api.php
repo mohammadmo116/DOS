@@ -22,6 +22,8 @@ Route::get('/getBooks', [BookController::class,'index']);
 
 Route::get('/search', [BookController::class,'search']);
 
+Route::delete('/aa/{id}', [BookController::class,'f']);
+
 Route::get('/book/{book:id}', [BookController::class,'show']);
 
 Route::put('/bookcost/{book:id}', [BookController::class,'update']);

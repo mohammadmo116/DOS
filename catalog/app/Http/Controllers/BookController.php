@@ -23,16 +23,7 @@ class BookController extends Controller
         return $books;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+
 
     public function search(Request $request)
     {
@@ -79,10 +70,9 @@ class BookController extends Controller
         $book->cost=$request->post('cost');
         $book->save();
         Http::put('catalogr:8000/api/bookcostR/'.$book->id,['cost'=>$request->post('cost')]);
-
         Log::info('(Catalog server) the book has been updated, the new cost is '.  $request->post('cost'), ['id' =>  $book->id]);
         Log::channel('stderr')->info('(Catalog server) the book has been updated, the new cost is '.  $request->post('cost'), ['id' => $book->id]);
-        return response()->json(['cost'=>$request->post('cost')]);
+        return response()->json(['cost'=>$request->post('cost'),'invalidate'=>true]);
 
     }
     public function updateR(Request $request, Book $book)
@@ -92,7 +82,7 @@ class BookController extends Controller
 
         Log::info('(Catalog server) the book has been updated, the new cost is '.  $request->post('cost'), ['id' =>  $book->id]);
         Log::channel('stderr')->info('(Catalog server) the book has been updated, the new cost is '.  $request->post('cost'), ['id' => $book->id]);
-        return response()->json(['cost'=>$request->post('cost')]);
+
 
     }
     public function countD(Book $book)
@@ -101,12 +91,16 @@ class BookController extends Controller
         Log::channel('stderr')->info('(Catalog server) removing book.', ['id' => $book->id]);
         $book->decrement('count');
        Http::put('catalogr:8000/api/removeBookR/'.$book->id);
+       return response()->json(['invalidate'=>true]);
+
+
     }
     public function countDR(Book $book)
     {
         Log::info('(Catalog server) removing book.', ['id' => $book->id]);
         Log::channel('stderr')->info('(Catalog server) removing book.', ['id' => $book->id]);
         $book->decrement('count');
+
     }
 
         public function countI(Book $book)
@@ -114,21 +108,13 @@ class BookController extends Controller
         Log::channel('stderr')->info('(Catalog Server) -> the book has been added',['id'=>$book->id]);
           $book->increment('count');
         Http::put('catalogr:8000/api/addBookR/'.$book->id);
+        return response()->json(['invalidate'=>true]);
+
     }
     public function countIR(Book $book)
     {  log::info('(Catalog Server) -> the book has been added',['id'=>$book->id]);
         Log::channel('stderr')->info('(Catalog Server) -> the book has been added',['id'=>$book->id]);
           $book->increment('count');
+    }
 
-    }
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Book  $book
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Book $book)
-    {
-        //
-    }
 }

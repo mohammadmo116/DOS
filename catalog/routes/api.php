@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
 Route::get('/getBooks', [BookController::class,'index']);
 
 Route::get('/search', [BookController::class,'search']);
