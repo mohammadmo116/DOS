@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::post('/Bookss', [CatalogController::class,'store']);
 Route::post('/Books/{id}/buy', [OrderController::class,'store']);
 Route::put('/Books/{id}/cost', [CatalogController::class,'update']);
 Route::put('/Books/{id}/add', [CatalogController::class,'countI']);

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use function PHPUnit\Framework\returnSelf;
 
 class PurchaseController extends Controller
@@ -33,7 +34,15 @@ class PurchaseController extends Controller
     public function store(Request $request)
     {
 
-        $book= Http::get('catalog:8000/api/book/'.$request->post('id'));
+        if(Cache::get('flag'))
+        {
+          $book= Http::get('catalog:8000/api/book/'.$request->post('id'));
+
+         Cache::set('flag',0); }
+        else
+        {  $book= Http::get('catalogr:8000/api/book/'.$request->post('id'));
+
+            Cache::set('flag',1);  }
 
         if($book->status()==404)
      {
@@ -51,11 +60,25 @@ class PurchaseController extends Controller
        return "this book is out of stock!";
        }
         else{
-        $book= Http::put('catalog:8000/api/removeBook/'.$request->post('id'));
+
+            if(Cache::get('flag'))
+            {
+                $book= Http::put('catalog:8000/api/removeBook/'.$request->post('id'));
+
+             Cache::set('flag',0); }
+            else
+            {    $book= Http::put('catalogr:8000/api/removeBook/'.$request->post('id'));
+
+
+                Cache::set('flag',1);  }
+                $date=date('Y-m-d H:i:s');
  $order =Purchase::create([
-        'purchase_date'=>date('Y-m-d H:i:s'),
+        'purchase_date'=> $date,
         'book_id'=>$request->post('id'),
+
+
     ]);
+    Http::post('orderr:8000/api/addP/'.$request->post('id'),['date'=>$date]);
     Log::info('(Order server) Purchase successfully order #.', ['id' => $order->id]);
     Log::channel('stderr')->info('(Order server) Purchase successfully order #.', ['id' => $order->id]);
     return 'Purchase successfully order #'.$order->id;
@@ -68,9 +91,13 @@ class PurchaseController extends Controller
      * @param  \App\Models\Purchase  $purchase
      * @return \Illuminate\Http\Response
      */
-    public function show(Purchase $purchase)
+    public function show(Request $request,$id)
     {
-        //
+        Purchase::create([
+            'purchase_date'=>$request->post('date'),
+            'book_id'=>$id,
+
+        ]);
     }
 
     /**

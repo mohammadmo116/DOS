@@ -28,5 +28,21 @@ services:
     volumes:
       - "./front:/app"
       - "./logs/laravel.log:/app/storage/logs/laravel.log"
+  catalogr:
+    build: ./catalogR
+    ports:
+      - "4003:8000"
+    networks:
+      - innerNetwork
+    volumes:
+      - "./catalogR:/app"
+  orderr:
+    build: ./orderR
+    ports:
+      - "4004:8000"
+    networks:
+      - innerNetwork
+    volumes:
+      - "./orderR:/app"      
 networks:
   innerNetwork:

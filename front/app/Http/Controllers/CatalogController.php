@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
-use function PHPUnit\Framework\returnSelf;
+
 
 class CatalogController extends Controller
 {
@@ -15,10 +16,19 @@ class CatalogController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
     public function index()
     {
 
-        $response= Http::get('catalog:8000/api/getBooks');
+
+      if(Cache::get('flag'))
+        {
+            $response= Http::get('catalog:8000/api/getBooks');
+         Cache::set('flag',0); }
+        else
+        { $response= Http::get('catalogr:8000/api/getBooks');
+            Cache::set('flag',1);  }
+
         Log::info("(Front-end Server) -> getting all books -> " . $response->body());
         Log::channel('stderr')->info("(Front-end Server) -> getting all books -> " . $response->body()."\n");
         return $response->json();
@@ -33,8 +43,12 @@ class CatalogController extends Controller
      */
     public function store(Request $request)
     {
-        $response= Http::get('catalog:8000/api/getBooks');
-        return $response->json();
+
+    //    Cache::set('flag',1);
+    //    return Cache::get('flag');
+
+        // $response= Http::get('catalog:8000/api/getBooks');
+        // return $response->json();
     }
 
     /**
@@ -44,8 +58,15 @@ class CatalogController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id)
-    {
-        $response= Http::get('catalog:8000/api/book/'.$id);
+    {    if(Cache::get('flag'))
+        {
+            $response= Http::get('catalog:8000/api/book/'.$id);
+         Cache::set('flag',0); }
+        else
+        {   $response= Http::get('catalogr:8000/api/book/'.$id);
+            Cache::set('flag',1);  }
+
+
         if($response->status()==404)
        { Log::error('(Front-end server) book was not found', ['id' => $id]);
         Log::channel('stderr')->error('(Front-end server) book was not found book', ['id' => $id]);
@@ -67,7 +88,16 @@ class CatalogController extends Controller
     public function update(Request $request, $id)
     {
 
-        $response= Http::put('catalog:8000/api/bookcost/'.$id,['cost'=>$request->post('cost')]);
+        if(Cache::get('flag'))
+        {
+            $response= Http::put('catalog:8000/api/bookcost/'.$id,['cost'=>$request->post('cost')]);
+
+         Cache::set('flag',0); }
+        else
+        {   $response= Http::put('catalogr:8000/api/bookcost/'.$id,['cost'=>$request->post('cost')]);
+
+            Cache::set('flag',1);  }
+
         if($response->status()==404)
         {
             Log::error('(Front-end server) book was not found', ['id' => $id]);
@@ -84,8 +114,17 @@ class CatalogController extends Controller
 
     public function search($topic)
     {
+        if(Cache::get('flag'))
+        {
+            $response= Http::get('catalog:8000/api/search?topic='.$topic);
 
-        $response= Http::get('catalog:8000/api/search?topic='.$topic);
+         Cache::set('flag',0); }
+        else
+        {$response= Http::get('catalogr:8000/api/search?topic='.$topic);
+
+            Cache::set('flag',1);  }
+
+
         if($response->json('error'))
        {  log::error('(front-end Server) -> no books found (search='.$topic.')');
           Log::channel('stderr')->error('(front-end Server) -> no books found (search='.$topic.")\n");
@@ -99,7 +138,16 @@ class CatalogController extends Controller
 
         public function countI($id)
     {
-        $response= Http::put('catalog:8000/api/addBook/'.$id);
+        if(Cache::get('flag'))
+        {
+            $response= Http::put('catalog:8000/api/addBook/'.$id);
+
+         Cache::set('flag',0); }
+        else
+        {  $response= Http::put('catalogr:8000/api/addBook/'.$id);
+
+            Cache::set('flag',1);  }
+
         if($response->status()==404)
         {log::error('(front-end Server) -> book is not found',['id'=>$id]);
             Log::channel('stderr')->error('(front-end Server) -> book is not found',['id'=>$id]);

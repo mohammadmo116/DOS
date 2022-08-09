@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 
 
 class BookController extends Controller
@@ -77,6 +78,18 @@ class BookController extends Controller
     {
         $book->cost=$request->post('cost');
         $book->save();
+        Http::put('catalogr:8000/api/bookcostR/'.$book->id,['cost'=>$request->post('cost')]);
+
+        Log::info('(Catalog server) the book has been updated, the new cost is '.  $request->post('cost'), ['id' =>  $book->id]);
+        Log::channel('stderr')->info('(Catalog server) the book has been updated, the new cost is '.  $request->post('cost'), ['id' => $book->id]);
+        return response()->json(['cost'=>$request->post('cost')]);
+
+    }
+    public function updateR(Request $request, Book $book)
+    {
+        $book->cost=$request->post('cost');
+        $book->save();
+
         Log::info('(Catalog server) the book has been updated, the new cost is '.  $request->post('cost'), ['id' =>  $book->id]);
         Log::channel('stderr')->info('(Catalog server) the book has been updated, the new cost is '.  $request->post('cost'), ['id' => $book->id]);
         return response()->json(['cost'=>$request->post('cost')]);
@@ -87,12 +100,26 @@ class BookController extends Controller
         Log::info('(Catalog server) removing book.', ['id' => $book->id]);
         Log::channel('stderr')->info('(Catalog server) removing book.', ['id' => $book->id]);
         $book->decrement('count');
+       Http::put('catalogr:8000/api/removeBookR/'.$book->id);
+    }
+    public function countDR(Book $book)
+    {
+        Log::info('(Catalog server) removing book.', ['id' => $book->id]);
+        Log::channel('stderr')->info('(Catalog server) removing book.', ['id' => $book->id]);
+        $book->decrement('count');
     }
 
         public function countI(Book $book)
     {  log::info('(Catalog Server) -> the book has been added',['id'=>$book->id]);
         Log::channel('stderr')->info('(Catalog Server) -> the book has been added',['id'=>$book->id]);
           $book->increment('count');
+        Http::put('catalogr:8000/api/addBookR/'.$book->id);
+    }
+    public function countIR(Book $book)
+    {  log::info('(Catalog Server) -> the book has been added',['id'=>$book->id]);
+        Log::channel('stderr')->info('(Catalog Server) -> the book has been added',['id'=>$book->id]);
+          $book->increment('count');
+
     }
     /**
      * Remove the specified resource from storage.

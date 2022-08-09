@@ -26,9 +26,12 @@ Route::get('/search', [BookController::class,'search']);
 Route::get('/book/{book:id}', [BookController::class,'show']);
 
 Route::put('/bookcost/{book:id}', [BookController::class,'update']);
+Route::put('/bookcostR/{book:id}', [BookController::class,'updateR']);
 
 
 Route::put('/addBook/{book:id}', [BookController::class,'countI']);
+Route::put('/addBookR/{book:id}', [BookController::class,'countIR']);
 
 
 Route::put('/removeBook/{book:id}', [BookController::class,'countD']);
+Route::put('/removeBookR/{book:id}', [BookController::class,'countDR']);

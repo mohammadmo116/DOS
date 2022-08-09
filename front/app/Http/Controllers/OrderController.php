@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 
 class OrderController extends Controller
 {
@@ -26,10 +27,27 @@ class OrderController extends Controller
      */
     public function store($id)
     {
+        if(Cache::get('flag'))
+        {
+            $response= Http::post('order:8000/api/buyBook',['id'=>$id]);
 
-         $response= Http::post('order:8000/api/buyBook',['id'=>$id]);
-         Log::info('(Front-end server) Purchase successfully book',['id'=>$id]);
-         Log::channel('stderr')->info('(Front-end server) Purchase successfully book',['id'=>$id]);
+
+         Cache::set('flag',0); }
+        else
+        {     $response= Http::post('orderr:8000/api/buyBook',['id'=>$id]);
+
+            Cache::set('flag',1);  }
+
+
+         if($response->body()=="this book is out of stock!"||$response->body()=="this book is out of stock!"){
+            Log::info('(Front-end server) Purchase not successfully book',['id'=>$id]);
+            Log::channel('stderr')->info('(Front-end server) Purchase not successfully book',['id'=>$id]);
+         }
+         else{
+
+                   Log::info('(Front-end server) Purchase successfully book',['id'=>$id]);
+            Log::channel('stderr')->info('(Front-end server) Purchase successfully book',['id'=>$id]);}
+
          return $response->body();
     }
 
